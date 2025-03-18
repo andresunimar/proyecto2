@@ -1,0 +1,109 @@
+import random
+
+def nCrearTablero():
+    nTablero = [[0 for _ in range(9)] for _ in range(9)]
+    nPistas = 0
+    
+    while nPistas < 17:
+        nFila = random.randint(0, 8)
+        nColumna = random.randint(0, 8)
+        nNumero = random.randint(1, 9)
+        
+        if nTablero[nFila][nColumna] == 0 and nEsValido(nTablero, nFila, nColumna, nNumero):
+            nTablero[nFila][nColumna] = nNumero
+            nPistas += 1
+    
+    return nTablero
+
+def nEsValido(nTablero, nFila, nColumna, nNumero):
+    for i in range(9):
+        if nTablero[nFila][i] == nNumero or nTablero[i][nColumna] == nNumero:
+            return False
+    
+    # Verificar cuadrante 3x3
+    nInicioFila = (nFila // 3) * 3
+    nInicioColumna = (nColumna // 3) * 3
+    for i in range(3):
+        for j in range(3):
+            if nTablero[nInicioFila + i][nInicioColumna + j] == nNumero:
+                return False
+    
+    return True
+
+# Función para mostrar el tablero en la consola
+def nMostrarTablero(nTablero, nPistas):
+    for i in range(9):
+        if i % 3 == 0 and i != 0:
+            print("+" + "---+" * 8 + "---+")
+        
+        for j in range(9):
+            if j % 3 == 0 and j != 0:
+                print("|", end=" ")
+            
+            if nTablero[i][j] == 0:
+                print(" . ", end=" ")
+            elif (i, j) in nPistas:
+                print(f"\033[94m{nTablero[i][j]}\033[0m", end=" ")  # Resaltar pistas en azul
+            else:
+                print(f" {nTablero[i][j]} ", end=" ")
+        print()
+    print("+" + "---+" * 8 + "---+")
+
+# Función para verificar si el tablero está completo
+def nTableroCompleto(nTablero):
+    for fila in nTablero:
+        if 0 in fila:
+            return False
+    return True
+
+# Función para resolver el Sudoku automáticamente
+def nResolverSudoku(nTablero):
+    for nFila in range(9):
+        for nColumna in range(9):
+            if nTablero[nFila][nColumna] == 0:
+                for nNumero in range(1, 10):
+                    if nEsValido(nTablero, nFila, nColumna, nNumero):
+                        nTablero[nFila][nColumna] = nNumero
+                        if nResolverSudoku(nTablero):
+                            return True
+                        nTablero[nFila][nColumna] = 0
+                return False
+    return True
+
+# Función principal del juego
+def nJugarSudoku():
+    nTablero = nCrearTablero()
+    nPistas = [(i, j) for i in range(9) for j in range(9) if nTablero[i][j] != 0]
+    
+    while not nTableroCompleto(nTablero):
+        nMostrarTablero(nTablero, nPistas)
+        
+        try:
+            nFila = int(input("Ingrese la fila (0-8): "))
+            nColumna = int(input("Ingrese la columna (0-8): "))
+            
+            if (nFila, nColumna) in nPistas:
+                print("No puedes sobreescribir una pista. Intenta de nuevo.")
+                continue
+            
+            if nFila < 0 or nFila > 8 or nColumna < 0 or nColumna > 8:
+                print("Posición inválida. Intenta de nuevo.")
+                continue
+            
+            nNumero = int(input("Ingrese el número (1-9): "))
+            if nNumero < 1 or nNumero > 9:
+                print("Número inválido. Intenta de nuevo.")
+                continue
+            
+            if nEsValido(nTablero, nFila, nColumna, nNumero):
+                nTablero[nFila][nColumna] = nNumero
+            else:
+                print("Movimiento inválido. Intenta de nuevo.")
+        
+        except ValueError:
+            print("Entrada inválida. Intenta de nuevo.")
+    
+    print("¡Felicidades! Has resuelto el Sudoku.")
+    nMostrarTablero(nTablero, nPistas)
+
+nJugarSudoku()
